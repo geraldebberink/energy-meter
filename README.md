@@ -33,7 +33,7 @@ It is mainly after a reset since the arduino stores the value in volitale memory
 
 TO DO
 -----
-[x] make the interrupt work well
+- [x] make the interrupt work well
 
 python interface
 ================
@@ -43,8 +43,8 @@ Currently the scripts run though a cron job. Later this should probably become a
 
 TO DO
 -----
-[x] create test software to check workings of communication
-[ ] create deamon
-[ ] create nice graphs
-[ ] create a nice way to display the graphs
+- [x] create test software to check workings of communication
+- [ ] create deamon
+- [ ] create nice graphs
+- [ ] create a nice way to display the graphs
 
