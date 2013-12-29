@@ -44,6 +44,7 @@ Currently the scripts run though a cron job. Later this should probably become a
 TO DO
 -----
 - [x] create test software to check workings of communication
+- [ ] make use of config files.
 - [ ] create deamon
 - [ ] create nice graphs
 - [ ] create a nice way to display the graphs

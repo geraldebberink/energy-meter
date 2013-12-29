@@ -22,6 +22,9 @@ void setup()
 Serial.begin(9600);
 inputString.reserve(100);
 pinMode(led, OUTPUT);
+// Make pin 3 an input with it's pull-up resistor activated.
+pinMode(3, INPUT);
+digitalWrite(3, HIGH);
 
 // Wh interrupt attached to IRQ 1 = pin3
 attachInterrupt(1, onPulse, FALLING);

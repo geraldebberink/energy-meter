@@ -1,3 +1,7 @@
+# personal projectfiles
+*.rdd
+*.pf
+
 *.py[cod]
 
 # C extensions
