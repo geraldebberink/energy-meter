@@ -1,0 +1,3 @@
+[submodule "python/arduinoserial"]
+	path = python/arduinoserial
+	url = git://github.com/wiseman/arduino-serial/
