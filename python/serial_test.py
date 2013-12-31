@@ -1,11 +1,10 @@
-import serial
+import arduinoserial.arduinoserial as serial
 import time
 import sys
 
 
 #dsrdtr should be set to zero to suppress the automatic reset of the Arduino Diecimila
-ser=serial.Serial('/dev/ttyUSB0',9600, timeout=10, dsrdtr=0, rtscts=0 )
-print 'connected to: ' + ser.portstr
+ser=serial.SerialPort('/dev/ttyUSB0',9600 )
 
 test=[ ]
 line=""
@@ -18,7 +17,7 @@ for num in range(1,5):
     time.sleep(2)
     ser.write("data?\n")
     time.sleep(2)
-    line = ser.readline()
+    line = ser.read_until('\n')
     test = line.split()
     print test
 

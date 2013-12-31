@@ -13,6 +13,18 @@ Currently this is a work in progress with many unknowns and firsts.
 * It is the first time i use python as a programming language to do anything.
 * It is unknown if the S interface on my ENTES ES-32L works with 5V (it should though)
 
+Installation
+============
+
+Load the sketch to your arduino. 
+Edit the appropiate variables in
+1. python/test.py
+2. python/create_images.py
+
+
+
+
+
 Arduino sketch
 =============
 
@@ -46,6 +58,8 @@ TO DO
 - [x] create test software to check workings of communication
 - [ ] make use of config files.
 - [ ] create deamon
-- [ ] create nice graphs
+- [X] create nice graphs
 - [ ] create a nice way to display the graphs
-
+- [ ] rename files to usefull names: test.py is *not* a usefull name
+- [ ] create usefull comments
+- [ ] give variables discriptive names: num is *not* descriptive

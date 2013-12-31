@@ -1,4 +1,4 @@
-import serial
+import arduinoserial.arduinoserial as serial
 import time
 from pyrrd import rrd
 import os
@@ -42,18 +42,17 @@ oldWh= int(f.readline())
 f.close()
     
 #dsrdtr should be set to zero to suppress the automatic reset of the Arduino Diecimila
-ser=serial.Serial(serDevice,9600, timeout=5, dsrdtr=1)
-#print 'connected to: ' + ser.portstr
+ser=serial.SerialPort(serDevice,9600)
 
 test=[ ]
 line=""
 reset=False
 power=0.0
 energyWh=0
-ser.flush()
+time.sleep(2)
 ser.write("data?\n")
-ser.flush()
-line = ser.readline()
+time.sleep(2)
+line = ser.read_until('\n')
 test = line.split()
 
 #if data is read and no reset has occured insert data in database
@@ -63,8 +62,8 @@ if(len(test)==3):
     energyWh = int(test[2])
     if reset:
         energyWh += oldWh
-        ser.write("set "+str(energyWh))
-        ser.flush()
+        ser.write("set "+str(energyWh)+"\n")
+	time.sleep(2)
     else:    
         myRRD.bufferValue(str(int(time.time())), str(int(power)), str(energyWh))
         myRRD.update()
@@ -73,6 +72,5 @@ if(len(test)==3):
         f.write(s)
         f.close()
 
-ser.close()
    
 
