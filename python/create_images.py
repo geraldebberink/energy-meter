@@ -1,7 +1,7 @@
 import serial
 import time
 from pyrrd import rrd
-from pyrrd.graph import DEF, AREA, VDEF, LINE, GPRINT, Graph, ColorAttributes
+from pyrrd.graph import CDEF, DEF, AREA, VDEF, LINE, GPRINT, Graph, ColorAttributes
 import os
 import tempfile
 
@@ -34,13 +34,14 @@ ca.arrow = '#FFFFFF'
 currentTime = int(time.time())
 
 def1 = DEF(rrdfile=myRRD.filename, vname='Watt', dsName='power')
-def2 = DEF(rrdfile=myRRD.filename, vname='Joule', dsName='energy')
+def2 = DEF(rrdfile=myRRD.filename, vname='Wh', dsName='energy')
 vdef1 = VDEF(vname='maxpower', rpn='%s,MAXIMUM' % def1.vname)
 vdef2 = VDEF(vname='avgpower', rpn='%s,AVERAGE' % def1.vname)
 vdef3 = VDEF(vname='maxenergy', rpn='%s,MAXIMUM' % def2.vname)
+cdef1 = CDEF(vname='Joule', rpn='%s,3600,*' % def2.vname) 
 
 area1 = AREA(defObj=def1, color='#006600', legend='Our Power')
-area2 = AREA(defObj=def2, color='#006600', legend='Our Energy')
+area2 = AREA(defObj=cdef1, color='#006600', legend='Our Energy')
 line1 = LINE(defObj=vdef1, color='#660000', legend='Our Maximum')
 line2 = LINE(defObj=vdef2, color='#009900', legend='Our Average')
 
@@ -48,11 +49,11 @@ gprint1 = GPRINT(vdef2,'average power %6.2lf watt')
 gprint2 = GPRINT(vdef1,'maximum power %6.2lf watt')
 
 
-labels = [['power',[def1, vdef1, vdef2, area1, gprint1, gprint2, line1, line2]],['energy',[def2,  area2]]]
+labels = [['power\ in\ Watt',[def1, vdef1, vdef2, area1, gprint1, gprint2, line1, line2]],['energy\ in\ Joule',[def2,cdef1,  area2]]]
 
 
 for num in range(0,len(labels)): 
     for val in temp: 
-        g = Graph((graphfile+'_'+labels[num][0].replace(' ','_')+'_'+val[1]+'.png'), start=(currentTime-(val[0]*60)), end=currentTime, vertical_label=labels[num][0], color=ca, imgformat='png')
+        g = Graph((graphfile+'_'+labels[num][0].split('\ ',1)[0]+'_'+val[1]+'.png'), start=(currentTime-(val[0]*60)), end=currentTime, vertical_label=labels[num][0], color=ca, imgformat='png')
         g.data.extend(labels[num][1])
         g.write()
