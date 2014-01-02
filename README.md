@@ -13,6 +13,9 @@ Currently this is a work in progress with many unknowns and firsts.
 * It is the first time i use python as a programming language to do anything.
 * ~~It is unknown if the S interface on my ENTES ES-32L works with 5V (it should though)~~ The ENTES ES-32L _IS_ compatible
 
+For more information see:
+http://blog.ebberink.nl/?p=267
+
 Installation
 ============
 
