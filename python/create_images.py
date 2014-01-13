@@ -26,7 +26,6 @@ for path in possible_paths:
         rrd_file = config.get('files', 'rrd_file')
         pulse_file = config.get('files', 'pulse_file')
         html_root = config.get('files', 'html_root')
-print 'config file used: ' + configfile
         
 minute = 1
 quarter = 15* minute
