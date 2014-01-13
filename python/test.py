@@ -11,7 +11,7 @@ possible_paths = ('/etc/defaults', os.path.expanduser('~/.energy_meter'), '.')
 
 # set the defaults for the configuration, so that if we miss a setting in the
 # file we have a "save" default.
-config = configparser.SaveConfigParser({
+config = configparser.SafeConfigParser({
           'serial_device': '/dev/ttyUSB0',
           'program_root': '/home/gerald/energy_meter/', 
           'rrd_file': 'test.rrd', 
