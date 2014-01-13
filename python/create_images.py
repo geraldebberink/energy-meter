@@ -7,7 +7,7 @@ import ConfigParser as configparser
 
 # try to locate a ini file in these place and use that to find the rest of 
 # settings. 
-possible_paths = ('/etc/defaults', os.path.expanduser('~/.energy_meter'), '.')
+possible_paths = ('/etc/default', os.path.expanduser('~/.energy_meter'), '.')
 
 # set the defaults for the configuration, so that if we miss a setting in the
 # file we have a "save" default.
