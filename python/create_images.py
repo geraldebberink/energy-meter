@@ -1,10 +1,33 @@
-import serial
 import time
+import os
+
 from pyrrd import rrd
 from pyrrd.graph import CDEF, DEF, AREA, VDEF, LINE, GPRINT, Graph, ColorAttributes
-import os
-import tempfile
+import ConfigParser as configparser
 
+# try to locate a ini file in these place and use that to find the rest of 
+# settings. 
+possible_paths = ('/etc/defaults', os.path.expanduser('~/.energy_meter'), '.')
+
+# set the defaults for the configuration, so that if we miss a setting in the
+# file we have a "save" default.
+config = configparser.SafeConfigParser({
+          'program_root': '/home/gerald/energy_meter/',
+          'rrd_file': 'test.rrd',
+          'pulse_file': 'pulse_file.pf',
+          'html_root': '/var/www/energy'})
+
+# locate a file and read the settings.
+for path in possible_paths:
+    configfile = path + '/home_config.ini'
+    if os.path.isfile(configfile):
+        config.read(configfile)
+        program_root = config.get('files', 'program_root')
+        rrd_file = config.get('files', 'rrd_file')
+        pulse_file = config.get('files', 'pulse_file')
+        html_root = config.get('files', 'html_root')
+print 'config file used: ' + configfile
+        
 minute = 1
 quarter = 15* minute
 hour = 4 * quarter
@@ -14,10 +37,13 @@ month = day * 30
 year = 365 * day
 
 
-filename='/home/gerald/energy_meter/test.rrd'
-graphfile='/home/gerald/energy_meter/test' 
-myRRD = rrd.RRD(filename, mode='r')
-temp = [[2*hour,'two_hour'], [day,'last_day'], [week,'last_week'], [month,'last_month'], [year,'last_year'], [3*year,'last_three_years'], [15*year,'last_decade']]
+rrdfile=program_root + rrd_file
+graphfile=html_root +'/test'
+myRRD = rrd.RRD(rrdfile, mode='r')
+times = [[2*hour,'two_hour'], [day,'last_day'], 
+        [week,'last_week'], [month,'last_month'], 
+        [year,'last_year'], [3*year,'last_three_years'], 
+        [15*year,'last_decade']]
 
 
 ca = ColorAttributes()
@@ -45,15 +71,28 @@ area2 = AREA(defObj=cdef1, color='#006600', legend='Our Energy')
 line1 = LINE(defObj=vdef1, color='#660000', legend='Our Maximum')
 line2 = LINE(defObj=vdef2, color='#009900', legend='Our Average')
 
-gprint1 = GPRINT(vdef2,'average power %6.2lf watt')
-gprint2 = GPRINT(vdef1,'maximum power %6.2lf watt')
+gprint1 = GPRINT(vdef2,'average power %6.0lf watt')
+gprint2 = GPRINT(vdef1,'maximum power %6.0lf watt')
 
+# setup the labels and definitions also setup the different file sizes
+labels = ['power\ in\ Watt','energy\ in\ Joule']
+definitions = [[def1, vdef1, vdef2, area1, gprint1, gprint2, line1, line2],[def2,cdef1, area2]]
+sizes = [[[497,169],'small'],[[800,600],'large']]
 
-labels = [['power\ in\ Watt',[def1, vdef1, vdef2, area1, gprint1, gprint2, line1, line2]],['energy\ in\ Joule',[def2,cdef1,  area2]]]
+#setup a dummpy image
+g = Graph('dummpy.png', end=currentTime, color=ca, imgformat='png')
 
-
-for num in range(0,len(labels)): 
-    for val in temp: 
-        g = Graph((graphfile+'_'+labels[num][0].split('\ ',1)[0]+'_'+val[1]+'.png'), start=(currentTime-(val[0]*60)), end=currentTime, vertical_label=labels[num][0], color=ca, imgformat='png')
-        g.data.extend(labels[num][1])
-        g.write()
+for num in range(0,len(labels)):
+    g.vertical_label = labels[num]
+    g.data = definitions[num]
+    
+    for t in times:
+        g.start = (currentTime - (t[0] * 60))
+        
+        for size in sizes:
+            g.width = size[0][0]
+            g.height =  size[0][1]
+            g.filename = graphfile+'_%s_%s_%s.png' % ( 
+                                                labels[num].split('\ ',1)[0], 
+                                                t[1], size[1] )
+            g.write(debug=False)

@@ -25,9 +25,6 @@ Edit the appropiate variables in
 2. python/create_images.py
 
 
-
-
-
 Arduino sketch
 =============
 
@@ -59,7 +56,7 @@ Currently the scripts run though a cron job. Later this should probably become a
 TO DO
 -----
 - [x] create test software to check workings of communication
-- [ ] make use of config files.
+- [x] make use of config files.
 - [ ] create deamon
 - [X] create nice graphs
 - [ ] create a nice way to display the graphs
