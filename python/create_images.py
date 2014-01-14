@@ -36,6 +36,8 @@ month = day * 30
 year = 365 * day
 
 
+sizes = [[[497,169],'small'],[[1280,720],'large']]
+
 rrdfile=program_root + rrd_file
 graphfile=html_root +'/test'
 myRRD = rrd.RRD(rrdfile, mode='r')
@@ -76,7 +78,6 @@ gprint2 = GPRINT(vdef1,'maximum power %6.0lf watt')
 # setup the labels and definitions also setup the different file sizes
 labels = ['power\ in\ Watt','energy\ in\ Joule']
 definitions = [[def1, vdef1, vdef2, area1, gprint1, gprint2, line1, line2],[def2,cdef1, area2]]
-sizes = [[[497,169],'small'],[[800,600],'large']]
 
 #setup a dummpy image
 g = Graph('dummpy.png', end=currentTime, color=ca, imgformat='png')
