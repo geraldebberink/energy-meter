@@ -5,6 +5,7 @@ from pyrrd import rrd
 from pyrrd.graph import CDEF, DEF, AREA, VDEF, LINE, GPRINT, Graph, ColorAttributes
 import ConfigParser as configparser
 
+
 # try to locate a ini file in these place and use that to find the rest of 
 # settings. 
 possible_paths = ('/etc/default', os.path.expanduser('~/.energy_meter'), '.')

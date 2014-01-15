@@ -16,7 +16,8 @@ config = configparser.SafeConfigParser({
           'program_root': '/home/gerald/energy_meter/', 
           'rrd_file': 'test.rrd', 
           'pulse_file': 'pulse_file.pf',
-          'html_root': '/var/www/energy'})
+          'html_root': '/var/www/energy',
+          'maximum_power': 8200})
 
 # locate a file and read the settings.
 for path in possible_paths:
@@ -28,6 +29,7 @@ for path in possible_paths:
         rrd_file = config.get('files', 'rrd_file')
         pulse_file = config.get('files', 'pulse_file')
         html_root = config.get('files', 'html_root')
+        maximum_power = config.getint('settings','maximum_power')
 
 # create the filenames        
 filename = program_root + rrd_file
@@ -81,6 +83,7 @@ reset=False
 power=0.0
 energyWh=0
 
+currTime = time.time()
 # ask the data and split it to the columns
 ser.write("data?\n")
 time.sleep(2)
@@ -99,8 +102,11 @@ if(len(test)==3):
         energyWh += oldWh
         ser.write("set "+str(energyWh)+"\n")
 	time.sleep(2)
-    else:    
-        myRRD.bufferValue(str(int(time.time())), str(int(power)), str(energyWh))
+    else:
+        if (power > maximum_power):
+            myRRD.bufferValue(str(int(currTime)), U, U)
+        else:    
+            myRRD.bufferValue(str(int(time.time())), str(int(power)), str(energyWh))
         myRRD.update()
         f = open(pulsefile, 'w')
         s = str(energyWh)
