@@ -133,86 +133,87 @@ class HomeEnergy:
             else:
                 print 'no rrdfile found'
         
-        def createdatabase(self, rrdfile=None):
-            if rrdfile is None:
-                rrdfile = self.rrdfile           
-            if os.path.isfile(rrdfile):
-                shutil.copy(rrdfile, (rrdfile[0:-4]+'.bak'))
-            cfs = ['AVERAGE','MAX']
-            times = [[self.minute, 2*self.hour], 
-                    [self.quarter, self.day/self.quarter],
-                    [self.hour, self.week/self.hour],
-                    [3*self.hour, self.month/(3*self.hour)],
-                    [self.day/2, self.year/(self.day/2)],
-                    [self.day,(3*self.year)/self.day],
-                    [self.week,(15*self.year)/self.week]]
-            dataSources = []
-            roundRobinArchives = []
-            dataSource = rrd.DataSource( dsName='power', dsType='GAUGE', 
-                                        heartbeat='120')
-            dataSources.append(dataSource)
-            dataSource = rrd.DataSource( dsName='energy', dsType='COUNTER', 
-                                        heartbeat='120')
-            dataSources.append(dataSource)
-            for val in cfs:
-                for val2 in times:
-                    roundRobinDatabase=rrd.RRA(cf=val, xff=0.5, 
-                                        steps=val2[0], rows=val2[1])
-                    roundRobinArchives.append(roundRobinDatabase)
-            myRRD = rrd.RRD(rrdfile, ds=dataSources, rra=roundRobinArchives, 
-                                        start=(int(time.time())-86400), step=60)
-            myRRD.create()
+    def createdatabase(self, rrdfile=None):
+        if rrdfile is None:
+            rrdfile = self.rrdfile           
+        if os.path.isfile(rrdfile):
+            shutil.copy(rrdfile, (rrdfile[0:-4]+'.bak'))
+        cfs = ['AVERAGE','MAX']
+        times = [[self.minute, 2*self.hour], 
+                [self.quarter, self.day/self.quarter],
+                [self.hour, self.week/self.hour],
+                [3*self.hour, self.month/(3*self.hour)],
+                [self.day/2, self.year/(self.day/2)],
+                [self.day,(3*self.year)/self.day],
+                [self.week,(15*self.year)/self.week]]
+        dataSources = []
+        roundRobinArchives = []
+        dataSource = rrd.DataSource( dsName='power', dsType='GAUGE', 
+                                    heartbeat='120')
+        dataSources.append(dataSource)
+        dataSource = rrd.DataSource( dsName='energy', dsType='COUNTER', 
+                                    heartbeat='120')
+        dataSources.append(dataSource)
+        for val in cfs:
+            for val2 in times:
+                roundRobinDatabase=rrd.RRA(cf=val, xff=0.5, 
+                                    steps=val2[0], rows=val2[1])
+                roundRobinArchives.append(roundRobinDatabase)
+        myRRD = rrd.RRD(rrdfile, ds=dataSources, rra=roundRobinArchives, 
+                                    start=(int(time.time())-86400), step=60)
+        myRRD.create()
+        
+    def readarduino(self, rrdfile=None):
+        if rrdfile is None:
+            rrdfile = self.rrdfile
+        if not(os.path.isfile(rrdfile)):
+            self.createdatabase(rrdfile)
+        # open the pulsefile and put the value in the oldWh
+        myRRD = rrd.RRD(self.rrdfile, mode='r')
+        f = open(self.pulsefile, 'r')
+        oldWh = int(f.readline())
+        f.close()
             
-        def readarduino(self, rrdfile=None):
-            if rrdfile is None:
-                rrdfile = self.rrdfile
-            if not(os.path.isfile(rrdfile)):
-                createdatabase(rrdfile)
-            # open the pulsefile and put the value in the oldWh
-            f = open(self.pulsefile, 'r')
-            oldWh = int(f.readline())
+        # open the serial port and wait two seconds
+        # dsrdtr should be set to zero to suppress the automatic reset 
+        # of the Arduino Diecimila. 
+        ser = serial.SerialPort(self.serial_device,9600)
+        time.sleep(2)
+        
+        # set default values.
+        test = [ ]
+        line = ""
+        reset = False
+        power = 0.0
+        energyWh = 0
+        
+        currTime = time.time()
+        
+        # ask the data and split it to the columns
+        ser.write("data?\n")
+        time.sleep(2)
+        line = ser.read_until('\n')
+        test = line.split()
+        
+        # if data is read and no reset has occured insert data in database
+        # after reset the old and new energy are added and then write it back to
+        # the arduino
+        # if no reset is given save the current power in the pulse file
+        if(len(test)==3):
+            reset = bool(int(test[0]))
+            power = float(test[1])
+            energyWh = int(test[2])
+            if reset:
+                energyWh += oldWh
+                ser.write("set " + str(energyWh) + "\n")
+       	    time.sleep(2)
+        else:
+            if (power > self.maximum_power):
+                myRRD.bufferValue(str(int(currTime)), 'U', 'U')
+            else:    
+                myRRD.bufferValue(str(int(time.time())), str(int(power)), str(energyWh))
+            myRRD.update()
+            f = open( self.pulsefile, 'w')
+            s = str( energyWh )
+            f.write(s)
             f.close()
-                
-            # open the serial port and wait two seconds
-            # dsrdtr should be set to zero to suppress the automatic reset 
-            # of the Arduino Diecimila. 
-            ser = serial.SerialPort(self.serial_device,9600)
-            time.sleep(2)
-            
-            # set default values.
-            test = [ ]
-            line = ""
-            reset = False
-            power = 0.0
-            energyWh = 0
-            
-            currTime = time.time()
-            
-            # ask the data and split it to the columns
-            ser.write("data?\n")
-            time.sleep(2)
-            line = ser.read_until('\n')
-            test = line.split()
-            
-            # if data is read and no reset has occured insert data in database
-            # after reset the old and new energy are added and then write it back to
-            # the arduino
-            # if no reset is given save the current power in the pulse file
-            if(len(test)==3):
-                reset = bool(int(test[0]))
-                power = float(test[1])
-                energyWh = int(test[2])
-                if reset:
-                    energyWh += oldWh
-                    ser.write("set " + str(energyWh) + "\n")
-           	    time.sleep(2)
-                else:
-                    if (power > self.maximum_power):
-                        myRRD.bufferValue(str(int(currTime)), 'U', 'U')
-                    else:    
-                        myRRD.bufferValue(str(int(time.time())), str(int(power)), str(energyWh))
-                    myRRD.update()
-                    f = open( self.pulsefile, 'w')
-                    s = str( energyWh )
-                    f.write(s)
-                    f.close()
