@@ -69,6 +69,7 @@ class HomeEnergy:
                 self.maximum_power = config.getint('settings','maximum_power')
                 # derived variables
                 self.rrdfile = self.program_root + self.rrd_file
+		self.pulsefile = self.program_root + self.pulse_file
                 self.graphfile = self.html_root + '/test'
                 # color variables
                 self.colors.back = config.get('colors', 'back')
@@ -130,8 +131,6 @@ class HomeEnergy:
                                             labels[num].split('\ ',1)[0], 
                                             t[1], size[1] )
                         g.write(debug=False)
-            else:
-                print 'no rrdfile found'
         
     def createdatabase(self, rrdfile=None):
         if rrdfile is None:
@@ -206,12 +205,12 @@ class HomeEnergy:
             if reset:
                 energyWh += oldWh
                 ser.write("set " + str(energyWh) + "\n")
-       	    time.sleep(2)
-        else:
-            if (power > self.maximum_power):
-                myRRD.bufferValue(str(int(currTime)), 'U', 'U')
-            else:    
-                myRRD.bufferValue(str(int(time.time())), str(int(power)), str(energyWh))
+       	    	time.sleep(2)
+            else:
+                if (power > self.maximum_power):
+                     myRRD.bufferValue(str(int(currTime)), 'U', 'U')
+                else:    
+                     myRRD.bufferValue(str(int(time.time())), str(int(power)), str(energyWh))
             myRRD.update()
             f = open( self.pulsefile, 'w')
             s = str( energyWh )
