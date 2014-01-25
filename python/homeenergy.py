@@ -4,7 +4,8 @@ import shutil
 import arduinoserial.arduinoserial as serial
 
 from pyrrd import rrd
-from pyrrd.graph import CDEF, DEF, AREA, VDEF, LINE, GPRINT, Graph, ColorAttributes
+from pyrrd.graph import (CDEF, DEF, AREA, VDEF, LINE, 
+                                GPRINT, Graph, ColorAttributes)
 import ConfigParser as configparser
 
 class HomeEnergy:
@@ -17,7 +18,8 @@ class HomeEnergy:
     year = 365 * day
 
     def __init__(self):
-        self.possible_paths = ('/etc/default', os.path.expanduser('~/.energy_meter'), '.')
+        self.possible_paths = ('/etc/default', 
+                                os.path.expanduser('~/.energy_meter'), '.')
         self.program_root = '/home/gerald/energy_meter/'
         self.rrd_file = 'test.rrd'
         self.pulse_file = 'pulse_file.pf'
@@ -210,7 +212,8 @@ class HomeEnergy:
                 if (power > self.maximum_power):
                      myRRD.bufferValue(str(int(currTime)), 'U', 'U')
                 else:    
-                     myRRD.bufferValue(str(int(time.time())), str(int(power)), str(energyWh))
+                     myRRD.bufferValue(str(int(time.time())), str(int(power)), 
+                                        str(energyWh))
             myRRD.update()
             f = open( self.pulsefile, 'w')
             s = str( energyWh )
