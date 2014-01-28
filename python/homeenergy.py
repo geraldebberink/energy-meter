@@ -1,12 +1,18 @@
 import time
 import os
 import shutil
+import ConfigParser as configparser
 import arduinoserial.arduinoserial as serial
+
+if __name__ == "__main__":
+    try:
+        import daemoncxt.runner as runner
+    except ImportError:
+        import daemon.runner as runner
 
 from pyrrd import rrd
 from pyrrd.graph import (CDEF, DEF, AREA, VDEF, LINE, 
                                 GPRINT, Graph, ColorAttributes)
-import ConfigParser as configparser
 
 class HomeEnergy:
     minute = 1
@@ -23,8 +29,9 @@ class HomeEnergy:
         self.program_root = '/home/gerald/energy_meter/'
         self.rrd_file = 'test.rrd'
         self.pulse_file = 'pulse_file.pf'
-        self.html_root = '/var/www/energy'
+        self.html_root = '/var/www/energy/test_'
         self.maximum_power = 8200
+        self.user = 'test'
         self.serial_device = '/dev/ttyUSB0'
         self.sizes = [[[497,169],'small'],[[1280,720],'large']]
         self.times = [[2*self.hour,'two_hour'], 
@@ -44,6 +51,17 @@ class HomeEnergy:
         self.colors.frame = '#AAAAAA'
         self.colors.font = '#FFFFFF'
         self.colors.arrow = '#FFFFFF'
+        self.updates = 4
+        self.rrdfile = self.program_root + self.rrd_file
+	self.pulsefile = self.program_root + self.pulse_file
+        self.update_interval = 60 / self.updates
+	
+	# needed for daemon.runner 
+        self.stdin_path = '/dev/null'
+        self.stdout_path = '/dev/tty'
+        self.stderr_path = '/dev/tty'
+        self.pidfile_path =  '/tmp/homeenergy.pid'
+        self.pidfile_timeout = 5
         
     def loadconfig(self):
         # try to locate a ini file in these place and use that to find the 
@@ -68,11 +86,13 @@ class HomeEnergy:
                 self.rrd_file = config.get('files', 'rrd_file')
                 self.pulse_file = config.get('files', 'pulse_file')
                 self.html_root = config.get('files', 'html_root')
-                self.maximum_power = config.getint('settings','maximum_power')
+                self.maximum_power = config.getint('settings', 'maximum_power')
+                self.updates = config.getint('settings', 'updates')
+                self.user = config.get('settings', 'user')
                 # derived variables
+                self.update_interval = 60 / self.updates
                 self.rrdfile = self.program_root + self.rrd_file
 		self.pulsefile = self.program_root + self.pulse_file
-                self.graphfile = self.html_root + '/test'
                 # color variables
                 self.colors.back = config.get('colors', 'back')
                 self.colors.canvas = config.get('colors','canvas')
@@ -85,6 +105,8 @@ class HomeEnergy:
                 self.colors.arrow = config.get('colors','arrow')
                 # hardware variables
                 self.serial_device = config.get('hardware', 'serial_interface')
+
+
                 
     def createimages(self, currentTime=None):
         if currentTime is None:
@@ -129,7 +151,7 @@ class HomeEnergy:
                     for size in self.sizes:
                         g.width = size[0][0]
                         g.height =  size[0][1]
-                        g.filename = self.graphfile+'_%s_%s_%s.png' % ( 
+                        g.filename = self.html_root+'%s_%s_%s.png' % ( 
                                             labels[num].split('\ ',1)[0], 
                                             t[1], size[1] )
                         g.write(debug=False)
@@ -219,3 +241,16 @@ class HomeEnergy:
             s = str( energyWh )
             f.write(s)
             f.close()
+            
+    def run(self):
+        while True:
+            self.readarduino()
+            if (time.struct_time(time.gmtime()).tm_min%self.update_interval == 0):
+                self.createimages()
+            time.sleep(60)
+if __name__ == "__main__":
+    energy = HomeEnergy()
+    energy.loadconfig()
+    
+    daemon_runner = runner.DaemonRunner(energy)
+    daemon_runner.do_action()

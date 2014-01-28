@@ -20,9 +20,8 @@ Installation
 ============
 
 Load the sketch to your arduino. 
-Edit the appropiate variables in
-1. python/test.py
-2. python/create_images.py
+copy the file home_config.ini
+and edit the appropiate variables.
 
 
 Arduino sketch
@@ -49,17 +48,16 @@ TO DO
 
 python interface
 ================
-The python interface was made with Canopy but is currently in a highly unstable state. Software wise. I'll create a better description when I have a somewhat stable set of scripts. 
+The python interface exists of a single file which can be used both as a module for integration in an other program or as a daemon directly useing some defaults and other values from the ini file.
 
-Currently the scripts run though a cron job. Later this should probably become a deamon so that it starts and stops with the system.
 
 TO DO
 -----
-- [x] create test software to check workings of communication
-- [x] make use of config files.
-- [ ] create deamon
+- [X] create test software to check workings of communication
+- [X] make use of config files.
+- [X] create deamon
 - [X] create nice graphs
 - [ ] create a nice way to display the graphs
-- [ ] rename files to usefull names: test.py is *not* a usefull name
-- [ ] create usefull comments
-- [ ] give variables discriptive names: num is *not* descriptive
+- [X] rename files to usefull names: test.py is *not* a usefull name
+- [X] create usefull comments
+- [X] give variables discriptive names: num is *not* descriptive
