@@ -186,7 +186,7 @@ class HomeEnergy:
                                     start=(int(time.time())-86400), step=60)
         myRRD.create()
         
-    def readarduino(self, rrdfile=None):
+    def readcontroller(self, rrdfile=None):
         if rrdfile is None:
             rrdfile = self.rrdfile
         if not(os.path.isfile(rrdfile)):
@@ -244,7 +244,7 @@ class HomeEnergy:
             
     def run(self):
         while True:
-            self.readarduino()
+            self.readcontroller()
             if (time.struct_time(time.gmtime()).tm_min%self.update_interval == 0):
                 self.createimages()
             time.sleep(60)
