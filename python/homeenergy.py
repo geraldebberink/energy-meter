@@ -24,6 +24,7 @@ class HomeEnergy:
     year = 365 * day
 
     def __init__(self):
+        """Testing this"""
         self.possible_paths = ('/etc/default', 
                                 os.path.expanduser('~/.energy_meter'), '.')
         self.program_root = '/home/gerald/energy_meter/'
@@ -34,12 +35,10 @@ class HomeEnergy:
         self.user = 'test'
         self.serial_device = '/dev/ttyUSB0'
         self.sizes = [[[497,169],'small'],[[1280,720],'large']]
-        self.times = [[2*self.hour,'two_hour'], 
-                        [self.day,'last_day'], 
+        self.times = [[2*self.day,'two_day'], 
                         [self.week,'last_week'], 
                         [self.month,'last_month'], 
                         [self.year,'last_year'], 
-                        [3*self.year,'last_three_years'], 
                         [15*self.year,'last_decade']]
         self.colors = ColorAttributes()
         self.colors.back = '#333333'
@@ -52,6 +51,7 @@ class HomeEnergy:
         self.colors.font = '#FFFFFF'
         self.colors.arrow = '#FFFFFF'
         self.updates = 4
+        # derived values
         self.rrdfile = self.program_root + self.rrd_file
 	self.pulsefile = self.program_root + self.pulse_file
         self.update_interval = 60 / self.updates
@@ -115,27 +115,23 @@ class HomeEnergy:
         if os.path.isfile(self.rrdfile):
             myRRD = rrd.RRD(self.rrdfile, mode='r')
                     
-            def1 = DEF(rrdfile=myRRD.filename, vname='Watt', dsName='power')
-            def2 = DEF(rrdfile=myRRD.filename, vname='Wh', dsName='energy')
+            def1 = DEF(rrdfile=myRRD.filename, vname='Wh', dsName='energy')
             vdef1 = VDEF(vname='maxpower', rpn='%s,MAXIMUM' % def1.vname)
             vdef2 = VDEF(vname='avgpower', rpn='%s,AVERAGE' % def1.vname)
-            vdef3 = VDEF(vname='maxenergy', rpn='%s,MAXIMUM' % def2.vname)
-            cdef1 = CDEF(vname='Joule', rpn='%s,3600,*' % def2.vname) 
+            cdef1 = CDEF(vname='Joule', rpn='%s,3600,*' % def1.vname) 
             
-            area1 = AREA(defObj=def1, color='#006600', legend='Our Power')
-            area2 = AREA(defObj=cdef1, color='#006600', legend='Our Energy')
-            line1 = LINE(defObj=vdef1, color='#660000', legend='Our Maximum')
-            line2 = LINE(defObj=vdef2, color='#009900', legend='Our Average')
+            area1 = AREA(defObj=cdef1, color='#006600', legend='Energy usage')
+            line1 = LINE(defObj=vdef1, color='#660000', legend='Maximum usage')
+            line2 = LINE(defObj=vdef2, color='#009900', legend='Average usage')
             
-            gprint1 = GPRINT(vdef2,'average power %6.0lf watt')
-            gprint2 = GPRINT(vdef1,'maximum power %6.0lf watt')
+            gprint1 = GPRINT(vdef2,'average power %5.0lf watt')
+            gprint2 = GPRINT(vdef1,'maximum power %5.0lf watt')
             
             # setup the labels and definitions also setup 
             # the different file sizes
-            labels = ['power\ in\ Watt','energy\ in\ Joule']
+            labels = ['Energy used in Joule']
             definitions = [
-                [def1, vdef1, vdef2, area1, gprint1, gprint2, line1, line2],
-                [def2,cdef1, area2]]
+                [def1, vdef1, vdef2, cdef1, area1, gprint1, gprint2, line1, line2]]
             
             #setup a dummpy image
             g = Graph('dummpy.png', end=currentTime, color=self.colors, 
@@ -162,13 +158,12 @@ class HomeEnergy:
         if os.path.isfile(rrdfile):
             shutil.copy(rrdfile, (rrdfile[0:-4]+'.bak'))
         cfs = ['AVERAGE','MAX']
-        times = [[self.minute, 2*self.hour], 
-                [self.quarter, self.day/self.quarter],
-                [self.hour, self.week/self.hour],
-                [3*self.hour, self.month/(3*self.hour)],
-                [self.day/2, self.year/(self.day/2)],
-                [self.day,(3*self.year)/self.day],
-                [self.week,(15*self.year)/self.week]]
+        times = [[self.minute, (2*self.day)/self.minute], 
+                [self.quarter, self.week/self.quarter],
+                [self.hour, self.month/self.hour],
+                [self.hour, self.year/self.hour],
+                [self.day,(15*self.year)/self.day],
+                ]
         dataSources = []
         roundRobinArchives = []
         dataSource = rrd.DataSource( dsName='power', dsType='GAUGE', 
