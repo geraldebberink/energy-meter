@@ -1,6 +1,6 @@
 import homeenergy
 
-energy = HomeEnergy()
+energy = homeenergy.HomeEnergy()
 energy.loadconfig()
 
 energy.readcontroller()
